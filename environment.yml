@@ -1,0 +1,29 @@
+name: brainmeshing
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python >= 3.10
+  - ipython
+  - fenics
+  - scipy
+  - numpy
+  - pyvista
+  - trame
+  - trame-vuetify
+  - trame-vtk
+  - ipywidgets
+  - imageio-ffmpeg
+  - meshio
+  - jupyter
+  - svmtk
+  - loguru
+  - tqdm
+  - click
+  - pymeshfix
+  - scikit-image
+  - nibabel
+  - pip
+  - pip:
+    - -e .
+    - -e ../gonzo
