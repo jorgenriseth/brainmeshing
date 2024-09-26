@@ -15,6 +15,7 @@ from brainmeshing.ventricles import extract_ventricle_surface
 @click.option("--initial_smoothing", type=float, default=0)
 @click.option("--surface_smoothing", type=float, default=0)
 @click.option("--taubin_iter", type=int, default=0)
+@click.option("--dilate", type=int, default=0)
 @click.option("--voxelized", type=bool, is_flag=True)
 def main(input: Path, output: Path, **kwargs):
     Path(output).parent.mkdir(exist_ok=True)

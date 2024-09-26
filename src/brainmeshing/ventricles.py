@@ -26,23 +26,24 @@ def extract_ventricle_surface(
     min_radius: int,
     surface_smoothing: float,
     taubin_iter: int = 0,
+    dilate: int = 0,
     voxelized: bool = False,
 ) -> pv.PolyData:
     seg, affine = seg_mri.data, seg_mri.affine
     if initial_smoothing > 0:
         seg = segmentation_smoothing(seg, sigma=initial_smoothing)["labels"]
-    ventricle_seg = refine_ventricle_segments(seg, min_radius=min_radius)
+    ventricle_seg = refine_ventricle_segments(seg, min_radius=min_radius, dilate=dilate)
     surf = binary_image_surface_extraction(
         ventricle_seg > 0, sigma=surface_smoothing, cutoff=0.5, to_cell=voxelized
     ).triangulate()
     if taubin_iter > 0:
         surf.smooth_taubin(taubin_iter, inplace=True)
+    print(affine)
     return surf.transform(affine)
 
 
 def refine_ventricle_segments(
-    seg: np.ndarray,
-    min_radius: int,
+    seg: np.ndarray, min_radius: int, dilate: int
 ) -> np.ndarray:
     ilv = extract_and_connect_inferior_lateral_ventricle(seg, min_radius)
     aqueduct = connecting_line(seg == V3, seg == V4, line_radius=min_radius)
@@ -55,6 +56,10 @@ def refine_ventricle_segments(
         + v4_with_aqueduct
         + v3_lateral_connection
     )
+    if dilate > 0:
+        ventricle_seg = skimage.morphology.binary_dilation(
+            ventricle_seg, skimage.morphology.ball(dilate)
+        )
     return ventricle_seg
 
 
@@ -86,7 +91,7 @@ def image_data_to_grid(
 ) -> pv.ImageData:
     label = "labels" if data_label is None else data_label
     point_volume = pv.ImageData(dimensions=vol.shape, spacing=[1] * 3, origin=[0] * 3)
-    point_volume.point_data[label] = vol.ravel()
+    point_volume.point_data[label] = vol.ravel(order="F")
     if to_cell:
         return point_volume.points_to_cells()
     return point_volume
@@ -97,9 +102,9 @@ def binary_image_surface_extraction(
 ) -> pv.PolyData:
     grid = pv.ImageData(dimensions=vol.shape, spacing=[1] * 3, origin=[0] * 3)
     if sigma > 0:
-        grid["labels"] = skimage.filters.gaussian(vol, sigma=sigma).ravel()
+        grid["labels"] = skimage.filters.gaussian(vol, sigma=sigma).ravel(order="F")
     else:
-        grid["labels"] = vol.ravel()
+        grid["labels"] = vol.ravel(order="F")
     if to_cell:
         thresh = grid.points_to_cells().threshold(cutoff)
         surf = thresh.extract_surface()  # type: ignore
@@ -110,7 +115,7 @@ def binary_image_surface_extraction(
 
 
 def connect_region_by_lines(
-    mask: np.ndarray, connectivity: int, line_radius: float
+    mask: np.ndarray, connectivity: int, line_radius: int
 ) -> np.ndarray:
     labeled_mask = skimage.measure.label(mask, connectivity=connectivity)
     mask = mask.copy()
