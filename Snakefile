@@ -10,7 +10,7 @@ rule extract_ventricles:
   params:
     presmooth = config["presmooth"]
   shell:
-    "python scripts/ventricle_surface.py"
+    "brainmeshing ventricle-surf"
     " -i {input}"
     " -o {output}"
     " --min_radius 2"
@@ -32,7 +32,7 @@ rule separate_white_and_gray:
   params:
     fs_dir = config["FS_DIR"]
   shell:
-    "python scripts/white_gray_separation.py"
+    "brainmeshing separate-surfaces"
     " --fs_dir {params.fs_dir}"
     " --outputdir $(dirname {output[0]})"
 
@@ -45,7 +45,7 @@ rule preprocess_white_surface:
   output:
     "surfaces/white.stl"
   shell:
-    "python scripts/white_matter_surface.py"
+    "brainmeshing wm-surfaces"
     " --inputdir $(dirname {input.lh_white})"
     " --seg {input.seg}"
     " --ventricles {input.ventricles}"
@@ -64,7 +64,7 @@ rule preprocess_gray_surfaces:
     rh="surfaces/rh_pial_novent.stl",
     subcort="surfaces/subcortical_gm.stl"
   shell:
-    "python scripts/gray_matter_surfaces.py"
+    "brainmeshing gm-surfaces"
     " --inputdir $(dirname {input.lh_pial})"
     " --seg {input.seg}"
     " --ventricles {input.ventricles}"
@@ -80,7 +80,7 @@ rule generate_mesh:
     hdf="meshes/mesh{resolution}.hdf",
     xdmf="meshes/mesh{resolution}_xdmfs/subdomains.xdmf"
   shell:
-    "python scripts/mesh_generation.py"
+    "brainmeshing meshgen"
     " --surfacedir $(dirname {input[0]})"
     " --resolution {wildcards.resolution}"
     " --output {output.hdf}"
@@ -94,5 +94,5 @@ rule mesh_segmentation:
     "meshes/mesh{resolution}_aparc.hdf"
   params: config["FS_DIR"]
   shell:
-    "python scripts/mesh_segments.py"
+    "brainmeshing subdomains"
     " {input} {output}"
