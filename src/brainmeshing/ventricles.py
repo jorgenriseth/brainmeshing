@@ -6,8 +6,7 @@ import numpy as np
 import pyvista as pv
 import scipy
 import skimage
-
-from gonzo.simple_mri import load_mri, SimpleMRI
+from gonzo.simple_mri import SimpleMRI, load_mri
 from gonzo.utils import segmentation_smoothing
 
 V3 = 14

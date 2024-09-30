@@ -1,15 +1,13 @@
 from pathlib import Path
 
-import numpy as np
-import dolfin as df
-from pantarei import read_domain
-import tqdm
-
-from gonzo.utils import apply_affine
-from gonzo.simple_mri import load_mri
-from gonzo.concentrations_to_mesh import nearest_neighbour
-
 import click
+import dolfin as df
+import numpy as np
+import tqdm
+from gonzo.concentrations_to_mesh import nearest_neighbour
+from gonzo.simple_mri import load_mri
+from gonzo.utils import apply_affine
+from pantarei import read_domain
 
 
 @click.command("subdomains")

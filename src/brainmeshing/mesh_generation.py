@@ -1,7 +1,8 @@
+from pathlib import Path
+
 import click
 import SVMTK as svmtk
 from pantarei.meshprocessing import mesh2xdmf, xdmf2hdf
-from pathlib import Path
 
 from brainmeshing.utils import subdomain_mapper
 

@@ -1,6 +1,6 @@
 from typing import Literal
-import pyvista as pv
 
+import pyvista as pv
 import SVMTK as svmtk
 
 

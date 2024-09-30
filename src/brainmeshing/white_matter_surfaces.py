@@ -1,18 +1,18 @@
+import tempfile
 from pathlib import Path
+from typing import Optional
 
 import click
 import numpy as np
 import pyvista as pv
-import tempfile
-from typing import Optional
-
 from gonzo.simple_mri import load_mri
+
 from brainmeshing.surfaces import (
-    hemisphere_surface_refinement,
     grow_white_connective_tissue,
+    hemisphere_surface_refinement,
+    pyvista2svmtk,
     surface_union,
     svmtk2pyvista,
-    pyvista2svmtk,
 )
 
 

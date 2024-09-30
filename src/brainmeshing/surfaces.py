@@ -3,16 +3,16 @@ import functools
 import subprocess
 import tempfile
 from pathlib import Path
-from typing import Optional, Any
+from typing import Any, Optional
 
 import numpy as np
 import pyvista as pv
 import SVMTK as svmtk
+from gonzo.segmentation_groups import default_segmentation_groups
+from gonzo.simple_mri import SimpleMRI
+from gonzo.utils import grow_restricted
 from loguru import logger
 
-from gonzo.segmentation_groups import default_segmentation_groups
-from gonzo.utils import grow_restricted
-from gonzo.simple_mri import SimpleMRI
 from brainmeshing.ventricles import binary_image_surface_extraction
 
 WHITE = [2, 41]

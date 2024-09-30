@@ -5,13 +5,13 @@ from typing import Any, Optional
 import click
 import numpy as np
 import pyvista as pv
-
 from gonzo.simple_mri import load_mri
+
 from brainmeshing.surfaces import (
+    TaubinParams,
     hemisphere_surface_refinement,
     pial_surface_processing,
     subcortical_gray_surfaces,
-    TaubinParams,
 )
 
 

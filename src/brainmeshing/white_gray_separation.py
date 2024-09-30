@@ -1,16 +1,16 @@
-import click
 import tempfile
 from pathlib import Path
 from typing import Optional
 
-import pyvista as pv
-import pymeshfix
-import SVMTK as svmtk
+import click
 import numpy as np
+import pymeshfix
+import pyvista as pv
+import SVMTK as svmtk
 import tqdm
 from loguru import logger
 
-from brainmeshing.surfaces import pyvista2svmtk, svmtk2pyvista, fs_surf_to_stl
+from brainmeshing.surfaces import fs_surf_to_stl, pyvista2svmtk, svmtk2pyvista
 
 
 @click.command("separate-surfaces")
