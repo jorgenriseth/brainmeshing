@@ -8,7 +8,6 @@ import pyvista as pv
 
 from gonzo.simple_mri import load_mri
 from brainmeshing.surfaces import (
-    fs_surf_to_stl,
     hemisphere_surface_refinement,
     pial_surface_processing,
     subcortical_gray_surfaces,

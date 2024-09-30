@@ -1,4 +1,7 @@
 configfile: "snakeconfig.yaml"
+wildcard_constraints:
+  resolution = r"\d+"
+
 rule extract_ventricles:
   input:
     f"{config['FS_DIR']}/mri/aseg.mgz"
@@ -82,3 +85,14 @@ rule generate_mesh:
     " --resolution {wildcards.resolution}"
     " --output {output.hdf}"
 
+
+rule mesh_segmentation:
+  input:
+    seg=f"{config['FS_DIR']}/mri/aparc+aseg.mgz",
+    mesh="meshes/mesh{resolution}.hdf",
+  output:
+    "meshes/mesh{resolution}_aparc.hdf"
+  params: config["FS_DIR"]
+  shell:
+    "python scripts/mesh_segments.py"
+    " {input} {output}"
