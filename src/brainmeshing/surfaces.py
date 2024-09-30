@@ -1,13 +1,16 @@
+import dataclasses
+import functools
 import subprocess
 import tempfile
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Any
 
 import numpy as np
 import pyvista as pv
 import SVMTK as svmtk
 from loguru import logger
 
+from gonzo.segmentation_groups import default_segmentation_groups
 from gonzo.utils import grow_restricted
 from gonzo.simple_mri import SimpleMRI
 from brainmeshing.ventricles import binary_image_surface_extraction
@@ -43,7 +46,7 @@ def surface_refinement(
     fix_boundaries: bool,
     gapsize: float,
 ):
-    assert Path(input).exists()
+    assert Path(input).exists(), f"{input} does not exist"
     surface = svmtk.Surface(str(input))
     if max_edge_length > 0 and remesh_iter > 0:
         surface.isotropic_remeshing(max_edge_length, remesh_iter, fix_boundaries)
@@ -101,7 +104,7 @@ def grow_white_connective_tissue(
 
 
 def pyvista2svmtk(
-    pv_grid: pv.UnstructuredGrid, suffix: Optional[str] = None
+    pv_grid: pv.DataObject, suffix: Optional[str] = None
 ) -> svmtk.Surface:
     ft = ".stl" if suffix is None else suffix
     with tempfile.TemporaryDirectory() as tmp_path:
@@ -113,7 +116,7 @@ def pyvista2svmtk(
 
 def svmtk2pyvista(
     svmtk_surface: svmtk.Surface, suffix: Optional[str] = None
-) -> pv.UnstructuredGrid:
+) -> pv.DataObject:
     ft = ".stl" if suffix is None else suffix
     with tempfile.TemporaryDirectory() as tmp_path:
         tmpfile = Path(tmp_path) / f"tmpsurf{ft}"
@@ -127,3 +130,49 @@ def surface_union(*args):
     for surface in surfaces[1:]:
         surfaces[0].union(surface)
     return surfaces[0]
+
+
+@dataclasses.dataclass
+class TaubinParams:
+    n_iter: int
+    pass_band: float
+    normalize: bool = True
+
+
+def pial_surface_processing(pial, ventricles, taubin_iter, taubin_pass_band):
+    ventricles_svm = pyvista2svmtk(ventricles)
+    svm_surface = pyvista2svmtk(pial)
+    svm_surface.difference(ventricles_svm)
+    svm_surface.separate_close_vertices()
+    pv_surface = svmtk2pyvista(svm_surface)
+    pv_surface.compute_normals(auto_orient_normals=True, inplace=True)
+    return pv_surface.smooth_taubin(
+        taubin_iter, taubin_pass_band, normalize_coordinates=True
+    )
+
+
+def subcortical_gray_surfaces(
+    seg_mri: SimpleMRI, sigma: float, presmooth: TaubinParams, postsmooth: TaubinParams
+) -> Any:
+    subcortical_surfaces = [
+        binary_image_surface_extraction(np.isin(seg_mri.data, region), sigma=sigma)
+        for region in default_segmentation_groups()["basal-ganglias"]
+    ]
+    if presmooth.n_iter > 0:
+        for surf in subcortical_surfaces:
+            surf.smooth_taubin(
+                presmooth.n_iter,
+                presmooth.pass_band,
+                normalize_coordinates=True,
+                inplace=True,
+            )
+
+    subcortical_gm = functools.reduce(lambda x, y: x + y, subcortical_surfaces)
+    if postsmooth.n_iter > 0:
+        subcortical_gm = subcortical_gm.smooth_taubin(
+            presmooth.n_iter,
+            presmooth.pass_band,
+            normalize_coordinates=True,
+            inplace=True,
+        )
+    return subcortical_gm.transform(seg_mri.affine)

@@ -38,7 +38,6 @@ def extract_ventricle_surface(
     ).triangulate()
     if taubin_iter > 0:
         surf.smooth_taubin(taubin_iter, inplace=True)
-    print(affine)
     return surf.transform(affine)
 
 

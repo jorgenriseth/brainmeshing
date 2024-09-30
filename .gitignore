@@ -1,3 +1,5 @@
+surfaces/
+meshes/
 .snakemake 
 mri_dataset
 mri_processed_data
